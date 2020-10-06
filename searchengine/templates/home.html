@@ -1,0 +1,20 @@
+<!-- templates/home.html -->
+{% extends 'base.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+  <p>Welcome to the Image Search Engine !!</p>
+{% if user.is_authenticated %}
+  <nav>
+  	<a href="{% url 'profile' %}"><button>Profile</button></a>
+  </nav>
+  <p> Hi {{ user.username }}! </p>
+  <p><a href="{% url 'logout' %}"><button>Log Out</button></a></p>
+{% else %}
+  <p>You are not logged in !! </p>
+  <p>Please click on <b>login</b> to login or <b>signup</b> to create a user account</p>
+  <a href="{% url 'login' %}"><button>Log In</button></a>
+  <a href="{% url 'signup' %}"><button>Sign Up</button></a>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,25 @@
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Subject: Password reset on 127.0.0.1:8000
+From: webmaster@localhost
+To: aanan002@odu.edu
+Date: Tue, 06 Oct 2020 03:58:46 -0000
+Message-ID: <160195672674.9816.18221152733613969420@DESKTOP-E1H1VJ2>
+
+
+You're receiving this email because you requested a password reset for your user account at 127.0.0.1:8000.
+
+Please go to the following page and choose a new password:
+
+http://127.0.0.1:8000/search/reset/MQ/abanxy-3b938e171c36c5f2eb7dc432afdf2313/
+
+Your username, in case you’ve forgotten: superuser
+
+Thanks for using our site!
+
+The 127.0.0.1:8000 team
+
+
+
+-------------------------------------------------------------------------------
