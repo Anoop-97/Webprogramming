@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Eye of Sauron Search
+{% endblock %}
+
+{% block content %}
+{% include 'components/nav.html' %}
+<br>
+<div class="container">
+    <h3>Eye of Sauron Search</h3>
+    <hr>
+    <!-- Search form -->
+    <div>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group row">
+                <div class="col-sm-12">
+                    <input type="text" name="img-search-string" class="form-control" id="searchField" placeholder="Enter Search String to find the image...">
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-sm-12">
+                    <button type="submit" class="btn btn-primary">Search</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    {% if results %}
+    <p> We found {{ count }} results for your search <b>'{{ search_term }}'</b>.</p>
+    <hr>
+    <div class="search results">
+        <div class="bricklayer">
+            {% for item in results %}
+            <div style="margin-right: 15px; margin-top:10px">
+                <div class="card" style="width: 15rem; height:auto;">
+                    <img class="card-img-top" src="{{item.5}}" alt="Card image cap">
+                    <div class="card-body">
+                        <h5 class="card-title">{{item.0}}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">{{item.2}}</h6>
+                        <!---{{item.1}}-->
+                        <p class="card-text"><b>Object</b>: {{item.4}}</p>
+                        <p class="card-text"><b>Aspect</b>: {{item.3}}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% elif not search_term %}
+    <p>Search for images by typing text in above text box.</p>
+    {% elif not results %}
+    <p>No results found for search query <b>'{{ search_term }}'</b></p>
+    {% endif %}
+</div>
+{% endblock %}
