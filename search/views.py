@@ -20,7 +20,7 @@ from django.contrib.auth.forms import PasswordResetForm
 from django.db.models.query_utils import Q
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
-
+from django.utils.html import escape, strip_tags
 #Elastic Search Utils
 from .es_test import eSearch
 from .es_client_service import eSearchNormalRetrieve, eSearchAdvancedRetrieve, eSearchIndexData
@@ -155,12 +155,16 @@ def advanced_search(request):
     if request.method == "POST":
         if request.POST.get('img-patentID'):
             imgPatentID=request.POST['img-patentID']
+            imgPatentID = escape(strip_tags(escape(imgPatentID))) # XSS
         if request.POST.get('img-desc'):
             imgDescription=request.POST['img-desc']
+            imgDescription = escape(strip_tags(escape(imgDescription))) # XSS
         if request.POST.get('img-obj'):
             imgObject=request.POST['img-obj']
+            imgObject = escape(strip_tags(escape(imgObject))) # XSS
         if request.POST.get('img-aspect'):
             imgAspect=request.POST['img-aspect']
+            imgAspect = escape(strip_tags(escape(imgAspect))) # XSS
         print(request.POST.keys())
         #retrieve results from elastic search
         results = eSearchAdvancedRetrieve(imgPatentID, imgDescription, imgObject, imgAspect)
@@ -180,6 +184,7 @@ def search(request):
     search_term=""
     if request.method == "POST":
         search_term = request.POST['img-search-string']
+        search_term = escape(strip_tags(escape(search_term))) # XSS script
         results = eSearchNormalRetrieve(search_term)
     print('--> Search Term: ',search_term)
     context = {

@@ -76,3 +76,5 @@ information.
 #### References
 
 * card columns, bricklayer, https://github.com/ademilter/bricklayer
+
+* XSS in DJango, https://tonybaloney.github.io/posts/xss-exploitation-in-django.html
