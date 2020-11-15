@@ -3,6 +3,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import EmailMessage
 from django.http import HttpResponse
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
@@ -21,35 +22,45 @@ from django.db.models.query_utils import Q
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
 from django.utils.html import escape, strip_tags
+
+from search.models import Figure_Details, Profile
+
+#reCAPTCHA decorator
+from .decorators import validate_recaptcha
+
 #Elastic Search Utils
 from .es_test import eSearch
 from .es_client_service import eSearchNormalRetrieve, eSearchAdvancedRetrieve, eSearchIndexData
 
 #Py Utils
 import mimetypes
-
+import json
 # Create your views here.
 
 UserModel = get_user_model()
 from .forms import SignUpForm, UserForm, ProfileForm
 
 #signup
+@validate_recaptcha
 def signup(request):
     context = {}
     form = SignUpForm(request.POST or None)
     if request.method == "POST":
         if User.objects.filter(email=request.POST['email']).exists():
             messages.error(request, "Unsuccessful registration, Email Already Exists. Please use a different email." )
-        elif form.is_valid():
+        elif not request.recaptcha_is_valid:
+            print('Signup Page: Invalid Captcha...')
+        elif form.is_valid() and request.recaptcha_is_valid:
             user = form.save(commit=False)
             user.is_active = False
             user.save()
             sendActivationEmail(request, user, form)
             #login(request, user)
             #messages.success(request, "Please confirm your email address to complete the registration" )
-            return render(request, 'accounts/register_account.html',context={'user':user})
+            return render(request, 'accounts/register_account.html',context={'user':user, 'siteKey':settings.GOOGLE_RECAPTCHA_SITE_KEY})
         messages.error(request, "Unsuccessful registration, Invalid Information." )
     context['signup_form']=form
+    context['siteKey'] = settings.GOOGLE_RECAPTCHA_SITE_KEY
     return render(request,'accounts/signup.html',context)
 
 #--- https://www.ordinarycoders.com/blog/article/django-user-register-login-logout
@@ -86,10 +97,11 @@ def activate(request, uidb64, token):
         return HttpResponse('Activation link is invalid!')
 
 #login
+@validate_recaptcha
 def login_c(request):
     if request.method == "POST":
         form = AuthenticationForm(request, data=request.POST)
-        if form.is_valid():
+        if form.is_valid() and request.recaptcha_is_valid:
             username = form.cleaned_data.get('username')
             password = form.cleaned_data.get('password')
             user = authenticate(username=username, password=password)
@@ -101,10 +113,13 @@ def login_c(request):
                 return redirect('index')
             else:
                 messages.error(request,"Invalid username or password.")
+        elif not request.recaptcha_is_valid:
+            #messages.error(request,"Invalid")
+            print('Invalid Captcha....')
         else:
-            messages.error(request,"Invalid username or password.")
+            messages.error(request,"Invalid Details.")
     form = AuthenticationForm()
-    return render(request=request, template_name="accounts/login.html", context={"login_form":form})
+    return render(request=request, template_name="accounts/login.html", context={"login_form":form,"siteKey":settings.GOOGLE_RECAPTCHA_SITE_KEY})
 
 def logout_request(request):
 	logout(request)
@@ -182,10 +197,17 @@ def advanced_search(request):
 def search(request):
     results=[]
     search_term=""
+    print(request.POST)
     if request.method == "POST":
-        search_term = request.POST['img-search-string']
-        search_term = escape(strip_tags(escape(search_term))) # XSS script
-        results = eSearchNormalRetrieve(search_term)
+        if request.POST.get('e_doc_id'):
+            print('Building in progress....')
+            elastic_id = request.POST.get('e_doc_id')
+            messages.success(request, 'item: '+elastic_id+' saved to your profile')
+            return redirect()
+        else:
+            search_term = request.POST['img-search-string']
+            search_term = escape(strip_tags(escape(search_term))) # XSS script
+            results = eSearchNormalRetrieve(search_term)
     print('--> Search Term: ',search_term)
     context = {
         'results': results,
@@ -194,6 +216,19 @@ def search(request):
     }
     return render(request,'search/search.html', context=context)
 
+
+# save History
+#@login_required
+def saveHistory(request):
+    if request.method == "POST":
+        #print('Building in progress....')
+        data = json.loads(request.body.decode("utf-8"))
+        print(data)
+        elastic_id = data.get('e_doc_id')
+        p = Profile(user_id=request.user, e_doc_id = elastic_id)
+        p.save()
+        #messages.success(request, 'item: '+elastic_id+' saved to your profile')
+    return JsonResponse({ 'job':'success', 'message' : 'item id: `'+elastic_id+'` saved to your profile' })
 
 def checkFiletype(fileName):
     mimetypes.init()
@@ -231,18 +266,19 @@ def indexData(request):
 def getProfileDetails(request):
     if request.method == "POST":
         user_form = UserForm(request.POST, instance=request.user)
-        profile_form = ProfileForm(request.POST, instance=request.user.profile)
+        #profile_form = ProfileForm(request.POST, instance=request.user.profile)
         if user_form.is_valid():
             user_form.save()
             messages.success(request,('Your profile was successfully updated!'))
         elif profile_form.is_valid():
-            profile_form.save()
+            #profile_form.save()
             messages.success(request,('Your wishlist was successfully updated!'))
         else:
             messages.error(request,('Unable to complete request'))
         return redirect ("/accounts/profile")
     user_form = UserForm(instance=request.user)
-    profile_form = ProfileForm(instance=request.user.profile)
+    #profile_form = ProfileForm(instance=request.user.profile)
+    profile_form = {}
     return render(request=request, template_name="accounts/profile.html", context={"user":request.user, "user_form":user_form, "profile_form":profile_form })
     #return render(request,'accounts/profile.html',context={})
 

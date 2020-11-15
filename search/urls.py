@@ -13,5 +13,6 @@ urlpatterns = [
     path("advsearch",views.advanced_search,name="advanced_search"),
     path("search",views.search,name="search"),
     path("indexData", views.indexData, name="indexData"),
+    path("saveItem", views.saveHistory, name="saveItem"),
     path("test",views.etest,name="test"),
 ]

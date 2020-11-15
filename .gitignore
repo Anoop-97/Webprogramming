@@ -1,3 +1,4 @@
 dataset/
 goldenEye/__pycache__
 search/__pycache__
+search/migrations/__pycache__

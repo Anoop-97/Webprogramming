@@ -51,7 +51,7 @@ information.
 
 5. The search engine accepts a text query in the search box; -- done
 
-6. The search engine should return search results on the search engine result page (SERP), which can be links to documents or images; -- in progress
+6. The search engine should return search results on the search engine result page (SERP), which can be links to documents or images; -- done
 
 7. The search engine should display the number of returned items on SERP; -- done
 
@@ -71,10 +71,41 @@ information.
 
 #### Milestone 3
 
+***Base requirements [15 points]***
+
+1. The search engine can return paginated results; [2 points] -- in progress
+
+2. The search engine can highlight results that contain search terms; [2 point] -- need More Info
+
+3. The SERP should display the actual term (after sanitization) shown on top; [2 point] -- done
+
+4. Users can click each item on SERP and go to either an external link or a page containing 
+more information of the item; [2 point] -- done
+
+5. Users can save items in search result to their profiles; [2 points] -- done
+
+6. Users have to login first to save search history to their profiles; [2 point] -- done
+
+7. reCAPTCHA should be used for both the logging in and the signing up page; [3 points] -- done
+
+***Optional requirements (Get Ahead)***
+
+1. The search engine can do spell check;
+
+2. The search engine can do autocompletion;
+
+3. The search engine uses at least one of these APIs: Google Map API, Speech-to-text API.
+
 #### Milestone 4
 
 #### References
 
+* Django Authentication, https://www.ordinarycoders.com/blog/article/django-user-register-login-logout
+
 * card columns, bricklayer, https://github.com/ademilter/bricklayer
 
 * XSS in DJango, https://tonybaloney.github.io/posts/xss-exploitation-in-django.html
+
+* Adding ReCAPTCHA to Django Application v2, https://simpleisbetterthancomplex.com/tutorial/2017/02/21/how-to-add-recaptcha-to-django-site.html
+
+* Adding ReCAPTCHA v3 to Django,  https://blog.ihfazh.com/how-to-implement-google-recaptcha-v3-on-your-django-app.html

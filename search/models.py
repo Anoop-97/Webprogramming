@@ -11,16 +11,19 @@ BULK_JSON_DATA_FILE = './dataset/jsondata.json'
 # Create your models here.
 # User Profile
 class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE, default=1)
+    # image details
+    # -- elastic search document id
+    e_doc_id = models.CharField(max_length=100, default=None)
     # products = models.ManyToManyField(Product)
-    @receiver(post_save, sender=User)
-    def create_user_profile(sender, instance, created, **kwargs):
-        if created:
-            Profile.objects.create(user=instance)
+    # @receiver(post_save, sender=User)
+    # def create_user_profile(sender, instance, created, **kwargs):
+    #     if created:
+    #         Profile.objects.create(user=instance)
     
-    @receiver(post_save, sender=User)
-    def save_user_profile(sender, instance, **kwargs):
-        instance.profile.save()
+    # @receiver(post_save, sender=User)
+    # def save_user_profile(sender, instance, **kwargs):
+    #     instance.profile.save()
         
 # figure_details
 class Figure_Details(models.Model):

@@ -9,6 +9,13 @@
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bricklayer/0.4.2/bricklayer.min.css">
     <!-- Bricklayer -->
     <script src="//cdnjs.cloudflare.com/ajax/libs/bricklayer/0.4.2/bricklayer.min.js"></script>
+    <!-- Google ReCAPTCHA Script-->
+    <script src='https://www.google.com/recaptcha/api.js?render='{{ siteKey }}></script>
+    <!-- Font Awesome -->
+    <script src="https://kit.fontawesome.com/3caf22f457.js" crossorigin="anonymous"></script>
+<!-- 
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
+        integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous"> -->
     <style>
         @media screen and (min-width: 1200px) {
             .bricklayer-column-sizer {
@@ -34,9 +41,6 @@
         {% block content %}
         {% endblock %}
     </div>
-    <script>
-        var bricklayer = new Bricklayer(document.querySelector('.bricklayer'))
-    </script>
     <!-- Optional Javascript -->
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
         integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
@@ -47,6 +51,16 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
         integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
         crossorigin="anonymous"></script>
+    <script>
+        var bricklayer = new Bricklayer(document.querySelector('.bricklayer'));
+        window.setTimeout(function () {
+            $(".alert").fadeTo(500, 0).slideUp(500, function () {
+                $(this).remove();
+            });
+        }, 3500);
+    </script>
+    {% block javascript %}
+    {% endblock %}
 </body>
 
 </html>

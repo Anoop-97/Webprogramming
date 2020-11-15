@@ -5,7 +5,7 @@ from .fileUtils import readDataFromindexJson, fileExists
 
 elasticIndex = "patentimgs"
 
-
+# Index new Data
 def eSearchIndexData(data):
     client = Elasticsearch()
     newPatent = {
@@ -63,8 +63,10 @@ def eSearchAdvancedRetrieve(imgPatentId="", imgDescription="", imgObject="", img
 def get_results(response):
     results=[]
     for hit in response:
+        #print(hit.meta.id)
         imgPathDB = fileExists('dataset/images/'+hit['patentID']+'-D0'+hit['pid'][2:]+'.png', hit['pid'])
-        result_tuple = (hit.patentID, hit.pid, hit.origreftext, hit.aspect, hit.object, imgPathDB)
+        result_tuple = (hit.meta.id, hit.patentID, hit.pid, hit.origreftext, hit.aspect, hit.object, imgPathDB, hit.description)
+        #print(result_tuple)
         results.append(result_tuple)
     return results
 
