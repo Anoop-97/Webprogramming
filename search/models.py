@@ -15,6 +15,7 @@ class Profile(models.Model):
     # image details
     # -- elastic search document id
     e_doc_id = models.CharField(max_length=100, default=None)
+    search_query = models.TextField(default=None)
     # products = models.ManyToManyField(Product)
     # @receiver(post_save, sender=User)
     # def create_user_profile(sender, instance, created, **kwargs):

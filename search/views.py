@@ -335,12 +335,25 @@ def search(request):
 def saveHistory(request):
     if request.method == "POST":
         #print('Building in progress....')
+        query = {}
         data = json.loads(request.body.decode("utf-8"))
         print(data)
         elastic_id = data.get('e_doc_id')
+        search_query = data.get('query')
+        #search_query = json.loads(str(search_query))
+        if len(search_query) > 2:
+            query['type'] = search_query.get('type')
+            query['patentID'] = search_query.get('patentID')
+            query['obj'] = search_query.get('obj')
+            query['aspect'] = search_query.get('aspect')
+            query['desc'] = search_query.get('desc')
+        else:
+            query['type'] = search_query.get('type')
+            query['q'] = search_query.get('q')
+        print(query)
         if Profile.objects.filter(user_id=request.user.id, e_doc_id = elastic_id).exists():
             return JsonResponse({'job':'fail', 'message' : 'item id: `'+elastic_id+'` already exists in your profile'})
-        p = Profile(user_id=request.user, e_doc_id = elastic_id)
+        p = Profile(user_id=request.user, e_doc_id = elastic_id, search_query = search_query)
         p.save()
         #messages.success(request, 'item: '+elastic_id+' saved to your profile')
     return JsonResponse({ 'job':'success', 'message' : 'item id: `'+elastic_id+'` saved to your profile' })
@@ -393,8 +406,11 @@ def getProfileDetails(request):
         return redirect ("/accounts/profile")
     user_form = UserForm(instance=request.user)
     idsList = list(Profile.objects.filter(user_id = request.user.id).values_list('e_doc_id', flat=True))
-    print(idsList)
+    recent_searches = list(Profile.objects.filter(user_id=request.user.id).values_list('search_query',flat=True))
+    recent_searches = [json.loads(query.replace('\'','"')) for query in recent_searches]
+    recent_searches.reverse()
+    print(recent_searches[0])
     profile_items = eSearchRetrieveByID(idsList)
     #profile_form = ProfileForm(instance=request.user.profile)
-    return render(request=request, template_name="accounts/profile.html", context={"user":request.user, "user_form":user_form, "profile_items":profile_items })
+    return render(request=request, template_name="accounts/profile.html", context={"user":request.user, "user_form":user_form, "profile_items":profile_items, "recent":recent_searches[0:5] })
     #return render(request,'accounts/profile.html',context={})

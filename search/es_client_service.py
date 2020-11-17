@@ -139,7 +139,7 @@ def eSearchRetrieveByID(idList = []):
     response = s.execute()
     print('Total hits found : ', response.hits.total)
     search = get_results(response)
-    print(search)
+    #print(search)
     return search
     
 

@@ -102,6 +102,8 @@ more information of the item; [2 point] -- done
 
 * Django Authentication, https://www.ordinarycoders.com/blog/article/django-user-register-login-logout
 
+* django elastic search reference, https://apirobot.me/posts/django-elasticsearch-searching-for-awesome-ted-talks
+
 * card columns, bricklayer, https://github.com/ademilter/bricklayer
 
 * XSS in DJango, https://tonybaloney.github.io/posts/xss-exploitation-in-django.html
@@ -113,3 +115,5 @@ more information of the item; [2 point] -- done
 * pagination, https://medium.com/@sumitlni/paginate-properly-please-93e7ca776432
 
 * highlight search results, https://stackoverflow.com/questions/56128231/how-to-highlight-searched-queries-in-result-page-of-django-template
+
+* storing json in db, https://www.laurencegellert.com/2018/09/django-tricks-for-processing-and-storing-json/

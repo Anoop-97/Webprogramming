@@ -179,7 +179,14 @@ Eye of Sauron Advanced Search
 
     function saveItem2Profile(elm) {
         var token = document.querySelector('[name=csrfmiddlewaretoken]').value;
-        var reqData = { e_doc_id: elm.value };
+        var reqData = { e_doc_id: elm.value , 
+            query:{
+                type: "advanced",
+                patentID : "{{ query.patentID}}",
+                obj: "{{ query.obj}}",
+                aspect: "{{query.aspect}}",
+                desc: "{{query.desc}}"
+        }};
         console.log(reqData);
         fetch('{% url "saveItem" %}', {
             method: 'POST',
