@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 
+{% load filter_utils %}
+
 {% block title %}
 Eye of Sauron Advanced Search
 {% endblock %}
@@ -55,12 +57,12 @@ Eye of Sauron Advanced Search
                 <div class="card" style="width: 15rem; height:auto;" id={{ item.0 }}>
                     <img class="card-img-top" src="{{item.6}}" alt="Card image cap">
                     <div class="card-body">
-                        <h6 class="card-title">{{item.1}}</h6>
+                        <h6 class="card-title">{{item.1|highlight_search:query.patentID }}</h6>
                         <h6 class="card-subtitle mb-2 text-muted">{{item.3}}</h6>
                         <!---{{item.1}}-->
-                        <p class="card-text" style="display:none">{{item.5}}</p>
-                        <p class="card-text" style="display:none">{{item.4}}</p>
-                        <p class="card-text" style="display:none">{{item.7}}</p>
+                        <p class="card-text" style="display:none">{{item.5|highlight_search:query.obj}}</p>
+                        <p class="card-text" style="display:none">{{item.4|highlight_search:query.aspect}}</p>
+                        <p class="card-text" style="display:none">{{item.7|highlight_search:query.desc}}</p>
                         <div class="row">
                             <div class="col-4 text-center">
                                 {% if user.is_authenticated %}

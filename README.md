@@ -73,9 +73,9 @@ information.
 
 ***Base requirements [15 points]***
 
-1. The search engine can return paginated results; [2 points] -- in progress
+1. The search engine can return paginated results; [2 points] -- done
 
-2. The search engine can highlight results that contain search terms; [2 point] -- need More Info
+2. The search engine can highlight results that contain search terms; [2 point] -- done but need More Info
 
 3. The SERP should display the actual term (after sanitization) shown on top; [2 point] -- done
 
@@ -111,3 +111,5 @@ more information of the item; [2 point] -- done
 * Adding ReCAPTCHA v3 to Django,  https://blog.ihfazh.com/how-to-implement-google-recaptcha-v3-on-your-django-app.html
 
 * pagination, https://medium.com/@sumitlni/paginate-properly-please-93e7ca776432
+
+* highlight search results, https://stackoverflow.com/questions/56128231/how-to-highlight-searched-queries-in-result-page-of-django-template

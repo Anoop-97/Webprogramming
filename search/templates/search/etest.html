@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% load paginate_utils %}
+{% load filter_utils %}
 
 {% block title %}
 Eye of Sauron Search
@@ -44,7 +44,7 @@ Eye of Sauron Search
         {% include 'components/pagination_test.html' %}
         <div class="search results">
             {% for item in results %}
-            <p> {{item.0}}, {{item.1}}, {{item.2}}, {{item.3}}  </p>
+            <p> {{item.0|highlight_search:query.name }}, {{item.1}}, {{ item.2|highlight_search:query.gender }}, {{item.3}}  </p>
             <hr>
             {% endfor %}
         </div>
