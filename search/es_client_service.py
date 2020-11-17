@@ -1,9 +1,68 @@
+from django.core.paginator import Paginator, Page
+
 from elasticsearch import Elasticsearch, helpers
 from elasticsearch_dsl import Search, Q
 from elasticsearch_dsl.query import MultiMatch
 from .fileUtils import readDataFromindexJson, fileExists
 
 elasticIndex = "patentimgs"
+
+# elastic-search paginator class
+class eSearchPaginator(Paginator):
+    """
+    Override Django's built-in Paginator class to take in a count/total number of items;
+    Elasticsearch provides the total as a part of the query results, so we can minimize hits.
+    """
+    def __init__(self, *args, **kwargs):
+        super(eSearchPaginator, self).__init__(*args, **kwargs)
+        self._count = self.object_list.hits.total.value
+        self._number_pages = self._count//self.per_page
+        self._page_range = list(range(1,self._number_pages+1))
+        print(self._count)
+        print(self._number_pages)
+        print(self._page_range)
+
+    def page(self, number):
+        # this is overridden to prevent any slicing of the object_list - Elasticsearch has
+        # returned the sliced data already.
+        number = self.validate_number(number)
+        self._number = number
+        return Page(self.object_list, number, self) 
+
+class esPaginator:
+    def __init__(self, totalResults = 0, perPage=10):
+        self.count = totalResults
+        self.perPage = perPage
+        self.num_pages = totalResults//perPage
+        
+        self.paginator = {
+            'number' : 0,
+            'count' : totalResults,
+            'has_other_pages':False,
+            'has_previous':False,
+            'get_prev_page':0,
+            'has_next':False,
+            'get_next_page':0,
+            'get_page_range':0,
+            'num_pages' : 1,
+        }
+    def paginate(self, number):
+        if self.count > self.perPage:
+            self.paginator['has_other_pages'] = True
+            self.paginator['has_previous'] = True if number > 1 else False
+            self.paginator['has_next'] = True if number < (self.num_pages + 1) else False
+            self.paginator['num_pages'] = self.count//self.perPage + 1
+            self.paginator['get_page_range'] = list(range(1,self.paginator['num_pages']+1))
+            if number in self.paginator['get_page_range']:
+                self.paginator['number'] = number
+                self.paginator['get_prev_page'] = number - 1
+                self.paginator['get_next_page'] = number + 1
+            else:
+                self.paginator['number'] = 1
+                self.paginator['get_prev_page'] = 1
+                self.paginator['get_next_page'] = 1
+            return self.paginator
+        return self.paginator
 
 # Index new Data
 def eSearchIndexData(data):
@@ -35,16 +94,26 @@ def eSearchIndexData(data):
 def eSearchUpdateIndex():
     return ''
 
-def eSearchNormalRetrieve(searchTerm=""):
+def eSearchNormalRetrieve(searchTerm="", pageLowerLimit = 0, pageUpperLimit = 10, page=1):
     client = Elasticsearch()
-    q = MultiMatch(query=searchTerm, fields=['patentID', 'pid','origreftext','description','aspect', 'object'], fuzziness='AUTO')
-    s = Search(using=client, index=elasticIndex).query(q)[0:20]
+    q = MultiMatch(query=searchTerm, 
+                   fields=['patentID', 
+                           'pid',
+                           'origreftext',
+                           'description',
+                           'aspect', 
+                           'object'],
+                   fuzziness='AUTO')
+    s = Search(using=client, index=elasticIndex).query(q)[pageLowerLimit:pageUpperLimit]
     response = s.execute()
     print('Total hits found : ', response.hits.total)
+    totalResults = response.hits.total.value
+    paginator = esPaginator(totalResults = totalResults, perPage = 10)
+    posts = paginator.paginate(page)
     search=get_results(response)
-    return search
+    return totalResults, search, posts
 
-def eSearchAdvancedRetrieve(imgPatentId="", imgDescription="", imgObject="", imgAspect=""):
+def eSearchAdvancedRetrieve(imgPatentId="", imgDescription="", imgObject="", imgAspect="", pageLowerLimit = 0, pageUpperLimit = 10, page=1):
     client = Elasticsearch()
     q = Q("bool", 
           should=[
@@ -54,11 +123,25 @@ def eSearchAdvancedRetrieve(imgPatentId="", imgDescription="", imgObject="", img
               Q("match", aspect=imgAspect),
             ],
           minimum_should_match=1)
-    s = Search(using=client, index=elasticIndex).query(q)[0:20]
+    s = Search(using=client, index=elasticIndex).query(q)[pageLowerLimit:pageUpperLimit]
     response = s.execute()
     print('Total hits found : ', response.hits.total)
+    totalResults = response.hits.total.value
+    paginator = esPaginator(totalResults = totalResults, perPage = 10)
+    posts = paginator.paginate(page)
     search=get_results(response)
+    return totalResults, search, posts
+
+def eSearchRetrieveByID(idList = []):
+    client = Elasticsearch()
+    q = Q('ids',values=idList)
+    s = Search(using=client, index=elasticIndex).query(q)
+    response = s.execute()
+    print('Total hits found : ', response.hits.total)
+    search = get_results(response)
+    print(search)
     return search
+    
 
 def get_results(response):
     results=[]

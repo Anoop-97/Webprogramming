@@ -30,7 +30,7 @@ from .decorators import validate_recaptcha
 
 #Elastic Search Utils
 from .es_test import eSearch
-from .es_client_service import eSearchNormalRetrieve, eSearchAdvancedRetrieve, eSearchIndexData
+from .es_client_service import eSearchNormalRetrieve, eSearchAdvancedRetrieve, eSearchIndexData, eSearchPaginator, eSearchRetrieveByID
 
 #Py Utils
 import mimetypes
@@ -126,6 +126,51 @@ def logout_request(request):
 	messages.info(request, "You have successfully logged out.") 
 	return redirect("index")
 
+@login_required
+def change_password(request):
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)  # Important!
+            messages.success(request, 'Your password was successfully updated!')
+            return redirect('accounts/profile')
+        else:
+            messages.error(request, 'Please correct the error below.')
+    else:
+        form = PasswordChangeForm(request.user)
+    return render(request, 'passwords/password_change.html', {
+        'form': form
+    })
+
+def password_reset_request(request):
+	if request.method == "POST":
+		password_reset_form = PasswordResetForm(request.POST)
+		if password_reset_form.is_valid():
+			data = password_reset_form.cleaned_data['email']
+			associated_users = User.objects.filter(Q(email=data))
+			if associated_users.exists():
+				for user in associated_users:
+					subject = "Eye of Sauron | Password Reset Requested"
+					email_template_name = "passwords/password_reset_email.html"
+					c = {
+					"email":user.email,
+					'domain':get_current_site(request).domain,
+					'site_name': 'Website',
+					"uid": urlsafe_base64_encode(force_bytes(user.pk)),
+					"user": user,
+					'token': default_token_generator.make_token(user),
+					'protocol': 'http',
+					}
+					email = render_to_string(email_template_name, c)
+					try:
+						send_mail(subject, email, None , [user.email], fail_silently=False)
+					except BadHeaderError:
+						return HttpResponse('Invalid header found.')
+					return redirect ("/password_reset/done/")
+	password_reset_form = PasswordResetForm()
+	return render(request=request, template_name="passwords/password_reset.html", context={"password_reset_form":password_reset_form})
+
 #index
 @login_required
 def index(request):
@@ -137,27 +182,51 @@ def etest(request):
     results=[]
     name_term=""
     gender_term=""
-    if request.POST.get('name') and request.POST.get('gender'):
-        #print("--> Both name and gender found")
-        name_term=request.POST['name']
-        gender_term=request.POST['gender']
-    elif request.POST.get('name'):
-        #print("--> Name found")
-        name_term=request.POST['name']
-    elif request.POST.get('gender'):
-        #print("--> Gender found")
-        gender_term=request.POST['gender']
+    if request.method == 'POST':
+        if request.POST.get('name') and request.POST.get('gender'):
+            #print("--> Both name and gender found")
+            name_term=request.POST['name']
+            gender_term=request.POST['gender']
+        elif request.POST.get('name'):
+            #print("--> Name found")
+            name_term=request.POST['name']
+        elif request.POST.get('gender'):
+            #print("--> Gender found")
+            gender_term=request.POST['gender']
+        # -- pagination
+        page = 1
+    if request.method == 'GET':
+        if request.GET.get('name') and request.GET.get('gender'):
+            #print("--> Both name and gender found")
+            name_term=request.GET['name']
+            gender_term=request.GET['gender']
+        elif request.GET.get('name'):
+            #print("--> Name found")
+            name_term=request.GET['name']
+        elif request.GET.get('gender'):
+            #print("--> Gender found")
+            gender_term=request.GET['gender']
+        # -- pagination
+        page = int(request.GET.get('page', '1'))
+    start = (page-1) * 10
+    end = start + 10
     search_term = name_term or gender_term
-    print(request.POST.keys())
-    results = eSearch(firstName=name_term, gender=gender_term)
-    #print(results)
+    search_query = {
+        'name' : name_term,
+        'gender' : gender_term
+    }
+    print(request.POST)
+    total, results, posts = eSearch(firstName=name_term, gender=gender_term, pageLowerLimit=start, pageUpperLimit=end, page=page)
+    # settings.POSTS_PER_PAGE
+    print('--> ',posts)   
     context={
         'results': results,
-        'count': len(results),
-        'search_term': search_term
+        'paginator': posts,
+        'count': total,
+        'search_term': search_term,
+        'query' : search_query
     }
     return render(request,'search/etest.html', context=context)
-
 
 #advanced search
 @login_required
@@ -181,14 +250,41 @@ def advanced_search(request):
             imgAspect=request.POST['img-aspect']
             imgAspect = escape(strip_tags(escape(imgAspect))) # XSS
         print(request.POST.keys())
-        #retrieve results from elastic search
-        results = eSearchAdvancedRetrieve(imgPatentID, imgDescription, imgObject, imgAspect)
+        #--- pagination
+        page = 1
+    elif request.method == 'GET':
+        if request.GET.get('patentID'):
+            imgPatentID=request.GET['patentID']
+            imgPatentID = escape(strip_tags(escape(imgPatentID))) # XSS
+        if request.GET.get('desc'):
+            imgDescription=request.GET['desc']
+            imgDescription = escape(strip_tags(escape(imgDescription))) # XSS
+        if request.GET.get('obj'):
+            imgObject=request.GET['obj']
+            imgObject = escape(strip_tags(escape(imgObject))) # XSS
+        if request.GET.get('aspect'):
+            imgAspect=request.GET['aspect']
+            imgAspect = escape(strip_tags(escape(imgAspect))) # XSS
+        #--- pagination
+        page = int(request.GET.get('page', '1'))
     search_term = imgPatentID or imgDescription or imgObject or imgAspect
     print('--> Search Term: ',search_term)
+    start = (page-1) * 10
+    end = start + 10
+    search_query = {
+        'patentID': imgPatentID,
+        'desc':imgDescription,
+        'obj':imgObject,
+        'aspect':imgAspect,
+    }
+    #retrieve results from elastic search
+    total, results, paginate = eSearchAdvancedRetrieve(imgPatentID, imgDescription, imgObject, imgAspect, pageLowerLimit = start, pageUpperLimit = end, page=page)
     context = {
         'results': results,
-        'count': len(results),
-        'search_term': search_term
+        'paginator': paginate,
+        'count': total,
+        'search_term': search_term,
+        'query' : search_query
     }
     return render(request,'search/advanced.html', context=context)
 
@@ -197,6 +293,7 @@ def advanced_search(request):
 def search(request):
     results=[]
     search_term=""
+    page=1
     print(request.POST)
     if request.method == "POST":
         if request.POST.get('e_doc_id'):
@@ -207,12 +304,28 @@ def search(request):
         else:
             search_term = request.POST['img-search-string']
             search_term = escape(strip_tags(escape(search_term))) # XSS script
-            results = eSearchNormalRetrieve(search_term)
+            # -- pagination
+            page = 1
+    if request.method == 'GET':
+        if request.GET.get('q'):
+            #print("--> Both name and gender found")
+            search_term=request.GET['q']
+            search_term = escape(strip_tags(escape(search_term))) # XSS script
+            # -- pagination
+            page = int(request.GET.get('page', '1'))
     print('--> Search Term: ',search_term)
+    start = (page-1) * 10
+    end = start + 10
+    search_query = {
+        'q': search_term
+    }
+    total, results, paginate = eSearchNormalRetrieve(search_term, pageLowerLimit = start, pageUpperLimit = end, page=page)
     context = {
         'results': results,
-        'count': len(results),
-        'search_term': search_term
+        'paginator': paginate,
+        'count': total,
+        'search_term': search_term,
+        'query' : search_query
     }
     return render(request,'search/search.html', context=context)
 
@@ -225,6 +338,8 @@ def saveHistory(request):
         data = json.loads(request.body.decode("utf-8"))
         print(data)
         elastic_id = data.get('e_doc_id')
+        if Profile.objects.filter(user_id=request.user.id, e_doc_id = elastic_id).exists():
+            return JsonResponse({'job':'fail', 'message' : 'item id: `'+elastic_id+'` already exists in your profile'})
         p = Profile(user_id=request.user, e_doc_id = elastic_id)
         p.save()
         #messages.success(request, 'item: '+elastic_id+' saved to your profile')
@@ -277,52 +392,9 @@ def getProfileDetails(request):
             messages.error(request,('Unable to complete request'))
         return redirect ("/accounts/profile")
     user_form = UserForm(instance=request.user)
+    idsList = list(Profile.objects.filter(user_id = request.user.id).values_list('e_doc_id', flat=True))
+    print(idsList)
+    profile_items = eSearchRetrieveByID(idsList)
     #profile_form = ProfileForm(instance=request.user.profile)
-    profile_form = {}
-    return render(request=request, template_name="accounts/profile.html", context={"user":request.user, "user_form":user_form, "profile_form":profile_form })
+    return render(request=request, template_name="accounts/profile.html", context={"user":request.user, "user_form":user_form, "profile_items":profile_items })
     #return render(request,'accounts/profile.html',context={})
-
-@login_required
-def change_password(request):
-    if request.method == 'POST':
-        form = PasswordChangeForm(request.user, request.POST)
-        if form.is_valid():
-            user = form.save()
-            update_session_auth_hash(request, user)  # Important!
-            messages.success(request, 'Your password was successfully updated!')
-            return redirect('accounts/profile')
-        else:
-            messages.error(request, 'Please correct the error below.')
-    else:
-        form = PasswordChangeForm(request.user)
-    return render(request, 'passwords/password_change.html', {
-        'form': form
-    })
-
-def password_reset_request(request):
-	if request.method == "POST":
-		password_reset_form = PasswordResetForm(request.POST)
-		if password_reset_form.is_valid():
-			data = password_reset_form.cleaned_data['email']
-			associated_users = User.objects.filter(Q(email=data))
-			if associated_users.exists():
-				for user in associated_users:
-					subject = "Eye of Sauron | Password Reset Requested"
-					email_template_name = "passwords/password_reset_email.html"
-					c = {
-					"email":user.email,
-					'domain':get_current_site(request).domain,
-					'site_name': 'Website',
-					"uid": urlsafe_base64_encode(force_bytes(user.pk)),
-					"user": user,
-					'token': default_token_generator.make_token(user),
-					'protocol': 'http',
-					}
-					email = render_to_string(email_template_name, c)
-					try:
-						send_mail(subject, email, None , [user.email], fail_silently=False)
-					except BadHeaderError:
-						return HttpResponse('Invalid header found.')
-					return redirect ("/password_reset/done/")
-	password_reset_form = PasswordResetForm()
-	return render(request=request, template_name="passwords/password_reset.html", context={"password_reset_form":password_reset_form})

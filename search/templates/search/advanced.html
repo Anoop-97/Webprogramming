@@ -47,7 +47,7 @@ Eye of Sauron Advanced Search
     </div>
     {% if results %}
     <p> We found {{ count }} results for your search <b>'{{ search_term | safe }}'</b>.</p>
-    <hr>
+    {% include 'components/pagination_advanced.html' %}
     <div class="search results">
         <div class="bricklayer">
             {% for item in results %}
@@ -91,6 +91,7 @@ Eye of Sauron Advanced Search
             {% endfor %}
         </div>
     </div>
+    {% include 'components/pagination_advanced.html' %}
     {% elif not search_term %}
     <p>Search for images using above fields.</p>
     {% elif not results %}
@@ -192,7 +193,11 @@ Eye of Sauron Advanced Search
             .then(response => response.json())
             .then(data => {
                 console.log('Response Success, message - ', data.message);
-                appendMessageAlert('alert-success', data.message);
+                if (data.job === 'success'){
+                    appendMessageAlert('alert-success', data.message);
+                }else{
+                    appendMessageAlert('alert-danger', data.message);
+                }
                 scrollToTop();
             })
             .catch((error) => {

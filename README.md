@@ -109,3 +109,5 @@ more information of the item; [2 point] -- done
 * Adding ReCAPTCHA to Django Application v2, https://simpleisbetterthancomplex.com/tutorial/2017/02/21/how-to-add-recaptcha-to-django-site.html
 
 * Adding ReCAPTCHA v3 to Django,  https://blog.ihfazh.com/how-to-implement-google-recaptcha-v3-on-your-django-app.html
+
+* pagination, https://medium.com/@sumitlni/paginate-properly-please-93e7ca776432
