@@ -47,15 +47,24 @@ Eye of Sauron Search
                         <div class="row">
                             <div class="col-4 text-center">
                                 {% if user.is_authenticated %}
-                                    <div >
+                                    <!-- btn-outline-warning
+                                        style="font-size:18px; border-radius: 25%"
+                                         -->
+                                    <div class="btn-group" role="group" >
                                         <input type="hidden" value="{{item.0}}" name="e_doc_id">
                                         <!-- <i class="far fa-bookmark"></i> -->
-                                        <button type="submit" id="save-submit" value = "{{item.0}}" 
+                                        <button type="button" id="save-submit" value = "{{item.0}}" 
                                         onclick="saveItem2Profile(this)"
-                                        class="btn btn-outline-warning" style="font-size:18px; border-radius: 25%"> <i class="far fa-bookmark"></i> </button>
+                                        class="btn btn-link" style="color: orange"> <i class="far fa-bookmark"></i></button>
+                                        <button type="button" class="btn btn-link"><a id="dnld-img-{{ item.0 }}" href="{{item.6}}" style="color: limegreen" download><i class="fas fa-download"></i></a></button>
+                                        <button type="button" class="btn btn-link" style="color: red"><i class="far fa-heart"></i></i></button>
                                     </div>
                                 {% else %}
-                                    <a href="accounts/login/" class="btn btn-outline-warning" style="font-size:18px; border-radius: 50%"><i class="far fa-bookmark"></i></a>
+                                <div class="row">
+                                    <a href="accounts/login/" class="btn btn-outline-warning" style="font-size:18px; border-radius: 50%"><i
+                                            class="far fa-bookmark"></i></a>
+                                    <a id="dnld-img-{{ item.0 }}" href="accounts/login/"><i class="fas fa-download"></i></a>
+                                </div>
                                 {% endif %}
                             </div>
                             <div class="col-2 text-center">
@@ -98,6 +107,8 @@ Eye of Sauron Search
                     <p class="" id="modal-Obj"><b>Object</b>: </p>
                     <p class="" id="modal-Aspect"><b>Aspect</b>: </p>
                     <p class="" id="modal-Description"><b>Description</b>: </p>
+                    <button type="button" class="btn btn-success"><a id="modal-download-img" href="#" style="color: black"
+                            download>Download <i class="fas fa-download"></i></a></button>
                 </div>
             </div>
         </div>
@@ -129,6 +140,7 @@ Eye of Sauron Search
             document.getElementById('modal-Obj').textContent = 'Object: ' + imgObject;
             document.getElementById('modal-Aspect').textContent = 'Aspect: ' + imgAspect;
             document.getElementById('modal-Description').textContent = 'Description: ' + imgDesc;
+            document.getElementById('modal-download-img').href = imgSrc;
     })
 
     function scrollToTop() {

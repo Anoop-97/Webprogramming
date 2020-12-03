@@ -98,6 +98,38 @@ more information of the item; [2 point] -- done
 
 #### Milestone 4
 
+***Base requirements [20 points]***
+
+1. Users can delete items from their favorite list. [5 points] -- done
+
+2. Items in the favorite lists should be descriptive (can’t be just a link) and are linked to and
+external page or a summary page of the item. [5 points] -- done
+
+3. The search engine implements at least one of the features spell check, autocomplete,
+Google Map API, Speech-to-text API, or other APIs permitted by the instructor. [5
+points]
+
+4. There is a button from which users can download documents (or images) from the
+summary page or from the SERP (or both). [5 points] -- done
+
+***Bonus points [4 points]***
+
+1. A RESTful API is implemented by which used can query search engine and obtain a
+default number of desired results (metadata only) without using the web interface. [4
+points]
+
+2. Logged in users can like a document like Facebook. Specifications are
+
+  1. There should be a like button for a document (a paper or an image) on the document
+summary page or on the SERP;
+
+  2. A logged in user can press the like button if he did not like the document before.
+
+  3. The user can toggle the “like” button so if he clicks it again, the previous action was
+reverted.
+
+  4. The total number of likes is shown next to the like button. 
+
 #### References
 
 * Django Authentication, https://www.ordinarycoders.com/blog/article/django-user-register-login-logout

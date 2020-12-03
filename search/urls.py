@@ -14,5 +14,6 @@ urlpatterns = [
     path("search",views.search,name="search"),
     path("indexData", views.indexData, name="indexData"),
     path("saveItem", views.saveHistory, name="saveItem"),
+    path("removeItem", views.removeItemFromProfile, name="removeItem"),
     path("test",views.etest,name="test"),
 ]

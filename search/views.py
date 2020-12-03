@@ -352,11 +352,26 @@ def saveHistory(request):
             query['q'] = search_query.get('q')
         print(query)
         if Profile.objects.filter(user_id=request.user.id, e_doc_id = elastic_id).exists():
-            return JsonResponse({'job':'fail', 'message' : 'item id: `'+elastic_id+'` already exists in your profile'})
+            return JsonResponse({'job':'fail', 'message' : 'item id: `'+elastic_id+'` already exists in your favourite list'})
         p = Profile(user_id=request.user, e_doc_id = elastic_id, search_query = search_query)
         p.save()
         #messages.success(request, 'item: '+elastic_id+' saved to your profile')
-    return JsonResponse({ 'job':'success', 'message' : 'item id: `'+elastic_id+'` saved to your profile' })
+    return JsonResponse({ 'job':'success', 'message' : 'item id: `'+elastic_id+'` saved to your favourite list' })
+
+def removeItemFromProfile(request):
+    if request.method == "POST":
+        data = json.loads(request.body.decode("utf-8"))
+        print(data)
+        elastic_id = data.get('e_doc_id')
+        if not len(elastic_id) > 0:
+            return JsonResponse({'job':'fail', 'message' : 'No item id: `'+elastic_id+'` mentioned in your favourite list'})
+        if not Profile.objects.filter(user_id=request.user.id, e_doc_id = elastic_id).exists():
+            return JsonResponse({'job':'fail', 'message' : 'item id: `'+elastic_id+'` does not exist in your favourite list'})
+        p = Profile.objects.filter(user_id=request.user, e_doc_id = elastic_id).delete()
+        print(p)
+        if not p[0] >= 1 :
+            return JsonResponse({'job':'fail', 'message' : 'error removing item id: `'+elastic_id+'` from your favourite list'})
+    return JsonResponse({ 'job':'success', 'message' : 'item id: `'+elastic_id+'` removed from your favourite list' })
 
 def checkFiletype(fileName):
     mimetypes.init()

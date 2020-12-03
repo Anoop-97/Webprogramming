@@ -15,6 +15,7 @@ def validate_recaptcha(view_func):
                 'secret': settings.GOOGLE_RECAPTCHA_SECRET_KEY,
                 'response': recaptcha_response
             }
+            print('requesting recaptcha from google...')
             r = requests.post('https://www.google.com/recaptcha/api/siteverify', data=data)
             result = r.json()
             if result['success']:

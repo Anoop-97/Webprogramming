@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}EOS-Login{% endblock %}
+{% block title %}EOS-Profile{% endblock %}
 
 {% block content %}
 
@@ -59,10 +59,10 @@
                             <tr>
                                 {% if item|length > 2 %}
                                 <td> {{ item.type }} </td>
-                                <td> PatentId-{{item.patentID}} </td>
+                                <td> PatentId-{{item.patentID}}, object-{{item.obj}}, aspect-{{item.aspect}}, description-{{item.desc}}  </td>
                                 {% else %}
                                 <td> {{ item.type }} </td>
-                                <td> Q - {{item.q}} </td>
+                                <td> {{item.q}} </td>
                                 {% endif %}
                             </tr>
                             {% endfor %}
@@ -176,6 +176,7 @@
                     <p class="" id="modal-Obj"><b>Object</b>: </p>
                     <p class="" id="modal-Aspect"><b>Aspect</b>: </p>
                     <p class="" id="modal-Description"><b>Description</b>: </p>
+                    <button type="button" id="modal-removeItem" class="btn btn-link" value="" onclick="removeItemFromProfile(this)" data-dismiss="modal">Remove from list</button>
                 </div>
             </div>
         </div>
@@ -207,6 +208,67 @@
         document.getElementById('modal-Obj').textContent = 'Object: ' + imgObject;
         document.getElementById('modal-Aspect').textContent = 'Aspect: ' + imgAspect;
         document.getElementById('modal-Description').textContent = 'Description: ' + imgDesc;
+        document.getElementById('modal-removeItem').value = id;
     })
+
+    function scrollToTop() {
+            window.scrollTo(0, 0);
+    }
+    
+    function appendMessageAlert(alertClass, alertString) {
+            var span = document.createElement("span");
+            span.setAttribute('aria-hidden', 'true');
+            span.textContent = '×';
+            var btn = document.createElement("button");
+            btn.setAttribute('type', 'button');
+            btn.setAttribute('class', 'close');
+            btn.setAttribute('data-dismiss', 'alert');
+            btn.setAttribute('aria-label', 'Close');
+            btn.appendChild(span);
+            var alert = document.createElement('div');
+            alert.className = 'alert ' + alertClass + ' alert-dismissible m-0 p-3';
+            alert.setAttribute('role', 'alert');
+            alert.appendChild(btn);
+            alert.append(alertString);
+            var messageAlert = document.createElement("div");
+            messageAlert.class = "container-fluid mx-0 p-0 sticky-top";
+            messageAlert.appendChild(alert);
+            document.getElementById('messages-panel').appendChild(messageAlert);
+    }
+
+    function removeItemFromProfile(elm) {
+            var token = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            var reqData = {
+                e_doc_id: elm.value
+            };
+            console.log(reqData);
+            fetch('{% url "removeItem" %}', {
+                method: 'POST',
+                mode: 'cors',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRFToken': token,
+                },
+                body: JSON.stringify(reqData),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Response Success, message - ', data.message);
+                    if (data.job === 'success') {
+                        appendMessageAlert('alert-success', data.message);
+                        document.getElementById(elm.value).remove();
+                    } else {
+                        appendMessageAlert('alert-danger', data.message);
+                    }
+                    scrollToTop();
+                })
+                .catch((error) => {
+                    console.error('Error: ', error);
+                    appendMessageAlert('alert-danger', 'Error!!!! Please check with Admin...');
+                    scrollToTop();
+                });
+        }
 </script>
 {% endblock %}

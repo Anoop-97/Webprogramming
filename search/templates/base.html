@@ -55,12 +55,12 @@
         integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
         crossorigin="anonymous"></script>
     <script>
-        var bricklayer = new Bricklayer(document.querySelector('.bricklayer'));
         window.setTimeout(function () {
-            $(".alert").fadeTo(500, 0).slideUp(500, function () {
-                $(this).remove();
-            });
-        }, 3500);
+                $(".alert").fadeTo(500, 0).slideUp(500, function () {
+                    $(this).remove();
+                });
+            }, 3500);
+        var bricklayer = new Bricklayer(document.querySelector('.bricklayer'));
     </script>
     {% block javascript %}
     {% endblock %}
