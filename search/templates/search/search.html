@@ -18,7 +18,14 @@ Eye of Sauron Search
             {% csrf_token %}
             <div class="form-group row">
                 <div class="col-sm-12">
-                    <input type="text" name="img-search-string" class="form-control" id="searchField" placeholder="Enter Search String to find the image...">
+                    <div class="input-group mb-3">
+                            <input type="text"  name="img-search-string" class="form-control"  placeholder="Enter Search String to find the image...">
+                            <div class="input-group-append">
+                                <button id="s2t-btn" type="button" class="btn btn-outline-secondary" onclick="startDictation(event)"><i class="fas fa-microphone"></i></button>
+                            </div>
+                    </div>
+                    <!-- <input type="text" name="img-search-string" class="form-control" id="searchField" onchange="getAutocompleteList(this)"  placeholder="Enter Search String to find the image...">
+                    <button class="btn"><i class="fas fa-microphone"></i></button> -->
                 </div>
             </div>
             <div class="form-group row">
@@ -53,9 +60,10 @@ Eye of Sauron Search
                                     <div class="btn-group" role="group" >
                                         <input type="hidden" value="{{item.0}}" name="e_doc_id">
                                         <!-- <i class="far fa-bookmark"></i> -->
+                                        <!-- style="color: orange" -->
                                         <button type="button" id="save-submit" value = "{{item.0}}" 
                                         onclick="saveItem2Profile(this)"
-                                        class="btn btn-link" style="color: orange"> <i class="far fa-bookmark"></i></button>
+                                        class="btn btn-outline-warning" style="border-radius: 25%"> <i class="far fa-bookmark"></i></button>
                                         <button type="button" class="btn btn-link"><a id="dnld-img-{{ item.0 }}" href="{{item.6}}" style="color: limegreen" download><i class="fas fa-download"></i></a></button>
                                         <button type="button" class="btn btn-link" style="color: red"><i class="far fa-heart"></i></i></button>
                                     </div>
@@ -119,6 +127,69 @@ Eye of Sauron Search
 {% block javascript %}
 
 <script>
+    // Speech2Text API
+    var final_transcript = '';
+    var recognizing = false;
+
+    if ('webkitSpeechRecognition' in window) {
+
+        var recognition = new webkitSpeechRecognition();
+
+        recognition.continuous = true;
+        recognition.interimResults = true;
+
+        recognition.onstart = function () {
+            document.getElementById('s2t-btn').classList.remove('btn-outline-secondary');
+            document.getElementById('s2t-btn').classList.add('btn-danger');
+            recognizing = true;
+        };
+
+        recognition.onerror = function (event) {
+            console.log(event.error);
+        };
+
+        recognition.onend = function () {
+            document.getElementById('s2t-btn').classList.remove('btn-danger');
+            document.getElementById('s2t-btn').classList.add('btn-outline-secondary');
+            recognizing = false;
+        };
+
+        recognition.onresult = function (event) {
+            var interim_transcript = '';
+            for (var i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                    final_transcript += event.results[i][0].transcript;
+                } else {
+                    interim_transcript += event.results[i][0].transcript;
+                }
+            }
+            final_transcript = capitalize(final_transcript);
+            console.log(final_transcript)
+            document.getElementsByName('img-search-string')[0].value = final_transcript;
+            //final_span.innerHTML = linebreak(final_transcript);
+            //interim_span.innerHTML = linebreak(interim_transcript);
+
+        };
+    }
+
+    function capitalize(s) {
+        return s.replace(s.substr(0, 1), function (m) { return m.toUpperCase(); });
+    }
+
+    function startDictation(event) {
+        if (recognizing) {
+            recognition.stop();
+            return;
+        }
+        final_transcript = '';
+        recognition.lang = 'en-US';
+        recognition.start();
+        //final_span.innerHTML = '';
+        //interim_span.innerHTML = '';
+    }
+
+
+
     //document.getElementById("save-submit").addEventListener("click", saveItem2Profile(this));
     $('#img-details-Modal').on('show.bs.modal', function (event) {
             var button = $(event.relatedTarget); // Button that triggered the modal
@@ -166,6 +237,41 @@ Eye of Sauron Search
         messageAlert.class = "container-fluid mx-0 p-0 sticky-top";
         messageAlert.appendChild(alert);
         document.getElementById('messages-panel').appendChild(messageAlert);
+    }
+
+    function getAutocompleteList(elm){
+        var token = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        var reqData = {
+            query: elm.value
+        };
+        console.log(reqData);
+        fetch('{% url "autocomplete" %}', {
+            method: 'POST',
+            mode: 'cors',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRFToken': token,
+            },
+            body: JSON.stringify(reqData),
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                // console.log('Response Success, message - ', data.message);
+                // if (data.job === 'success') {
+                //     appendMessageAlert('alert-success', data.message);
+                // } else {
+                //     appendMessageAlert('alert-danger', data.message);
+                // }
+                scrollToTop();
+            })
+            .catch((error) => {
+                console.error('Error: ', error);
+                appendMessageAlert('alert-danger', 'Error!!!! Please check with Admin...');
+                scrollToTop();
+            });
     }
 
     function saveItem2Profile(elm) {

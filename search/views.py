@@ -30,7 +30,7 @@ from .decorators import validate_recaptcha
 
 #Elastic Search Utils
 from .es_test import eSearch
-from .es_client_service import eSearchNormalRetrieve, eSearchAdvancedRetrieve, eSearchIndexData, eSearchPaginator, eSearchRetrieveByID
+from .es_client_service import eSearchNormalRetrieve, eSearchAdvancedRetrieve, eSearchIndexData, eSearchPaginator, eSearchRetrieveByID, autocomplete
 
 #Py Utils
 import mimetypes
@@ -330,7 +330,7 @@ def search(request):
     return render(request,'search/search.html', context=context)
 
 
-# save History
+# save History AJAX query
 #@login_required
 def saveHistory(request):
     if request.method == "POST":
@@ -357,6 +357,15 @@ def saveHistory(request):
         p.save()
         #messages.success(request, 'item: '+elastic_id+' saved to your profile')
     return JsonResponse({ 'job':'success', 'message' : 'item id: `'+elastic_id+'` saved to your favourite list' })
+
+
+def getAutocompleteList(request):
+    if request.method == "POST":
+        query = {}
+        data = json.loads(request.body.decode("utf-8"))
+        search_query = data.get('query')
+        autocomplete(search_query)
+    return JsonResponse({ 'job':'success'})
 
 def removeItemFromProfile(request):
     if request.method == "POST":

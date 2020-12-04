@@ -64,6 +64,41 @@ class esPaginator:
             return self.paginator
         return self.paginator
 
+
+#AutoComplete Feature
+def autocomplete(q):
+    spellCheckRequired = False
+    client = Elasticsearch()
+    s = Search(using=client, index=elasticIndex)
+    query = s.suggest(
+        'suggestions',
+        q,
+        term = {
+            'field' : 'description'
+        }
+    )
+    response = query.execute()
+    print('--> ', response)
+    search_query = response.suggest.suggestions[0].text
+    suggestions = [txt.text for txt in response.suggest.suggestions[0].options]
+    spell_check = suggestions[0]
+    if len(suggestions) > 1:
+        suggestions = suggestions[1:]
+    print('--> ', search_query)
+    if spell_check == search_query:
+        print('--> No correction required.')
+        spellCheckRequired = False
+    else:
+        print('--> Please Search related to : ',spell_check)
+        spellCheckRequired = True
+    print('--> ', suggestions)
+    return {
+        'query' : search_query,
+        'suggestions': suggestions,
+        'spell_check': spellCheckRequired,
+        'spelling': spell_check
+            }
+
 # Index new Data
 def eSearchIndexData(data):
     client = Elasticsearch()
@@ -117,10 +152,10 @@ def eSearchAdvancedRetrieve(imgPatentId="", imgDescription="", imgObject="", img
     client = Elasticsearch()
     q = Q("bool", 
           should=[
-              Q("match", patentID=imgPatentId),
-              Q("match", description=imgDescription),
-              Q("match", object=imgObject),
-              Q("match", aspect=imgAspect),
+              Q("match", patentID={"query":imgPatentId, "fuzziness": "1"}),
+              Q("match", description={"query":imgDescription, "fuzziness":"1"}),
+              Q("match", object={"query":imgObject, "fuzziness":"1"}),
+              Q("match", aspect={"query":imgAspect, "fuzziness":"1"}),
             ],
           minimum_should_match=1)
     s = Search(using=client, index=elasticIndex).query(q)[pageLowerLimit:pageUpperLimit]

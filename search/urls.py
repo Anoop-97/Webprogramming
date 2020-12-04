@@ -16,4 +16,5 @@ urlpatterns = [
     path("saveItem", views.saveHistory, name="saveItem"),
     path("removeItem", views.removeItemFromProfile, name="removeItem"),
     path("test",views.etest,name="test"),
+    path("autocomplete",views.getAutocompleteList,name="autocomplete"),
 ]

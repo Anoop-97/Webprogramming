@@ -125,6 +125,8 @@ Eye of Sauron Advanced Search
                     <p class="" id="modal-Obj"><b>Object</b>: </p>
                     <p class="" id="modal-Aspect"><b>Aspect</b>: </p>
                     <p class="" id="modal-Description"><b>Description</b>: </p>
+                    <button type="button" class="btn btn-success"><a id="modal-download-img" href="#" style="color: black" download>Download
+                            <i class="fas fa-download"></i></a></button>
                 </div>
             </div>
         </div>
@@ -154,6 +156,7 @@ Eye of Sauron Advanced Search
             document.getElementById('modal-Obj').textContent = 'Object: ' + imgObject;
             document.getElementById('modal-Aspect').textContent = 'Aspect: ' + imgAspect;
             document.getElementById('modal-Description').textContent = 'Description: ' + imgDesc;
+            document.getElementById('modal-download-img').href = imgSrc;
     })
 
     function scrollToTop() {

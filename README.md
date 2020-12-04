@@ -107,7 +107,7 @@ external page or a summary page of the item. [5 points] -- done
 
 3. The search engine implements at least one of the features spell check, autocomplete,
 Google Map API, Speech-to-text API, or other APIs permitted by the instructor. [5
-points]
+points] -- done (spell check and Speech-to-text)
 
 4. There is a button from which users can download documents (or images) from the
 summary page or from the SERP (or both). [5 points] -- done
@@ -149,3 +149,5 @@ reverted.
 * highlight search results, https://stackoverflow.com/questions/56128231/how-to-highlight-searched-queries-in-result-page-of-django-template
 
 * storing json in db, https://www.laurencegellert.com/2018/09/django-tricks-for-processing-and-storing-json/
+
+* spell corrector sugestions, https://medium.com/@mallikarjuna91/elasticsearch-building-a-simple-spell-corrector-with-elasticsearch-25bca2573975
